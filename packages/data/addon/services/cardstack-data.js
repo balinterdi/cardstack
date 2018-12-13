@@ -138,6 +138,20 @@ export default Service.extend({
     }
   },
 
+  async branches() {
+    let url = `${hubURL}/api/branches`;
+    let response = await fetch(url, {
+      headers: this._headers()
+    });
+    let { data } = await response.json();
+    let { attributes, relationships } = data;
+    return {
+      mayUpdateResource: attributes['may-update-resource'],
+      writableFields: relationships['writable-fields'].data
+        .map((field) => camelize(field.id))
+    }
+  },
+
   getCardMeta(card, attribute) {
     if (attribute === 'human-id') {
       let humanType = getType(card)
