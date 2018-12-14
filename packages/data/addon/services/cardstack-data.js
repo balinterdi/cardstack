@@ -144,12 +144,8 @@ export default Service.extend({
       headers: this._headers()
     });
     let { data } = await response.json();
-    let { attributes, relationships } = data;
-    return {
-      mayUpdateResource: attributes['may-update-resource'],
-      writableFields: relationships['writable-fields'].data
-        .map((field) => camelize(field.id))
-    }
+
+    return data.map(branch => branch.id);
   },
 
   getCardMeta(card, attribute) {
