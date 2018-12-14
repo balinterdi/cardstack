@@ -6,13 +6,14 @@ const log = require('@cardstack/logger')('cardstack/indexers');
 const FINALIZED = {};
 
 class BranchUpdate {
-  constructor(branch, seedSchema, client, emitEvent, isControllingBranch, owner) {
+  constructor(branch, seedSchema, client, emitEvent, controllingBranch, owner) {
     this.branch = branch;
     this.seedSchema = seedSchema;
     this.client = client;
     this.updaters = Object.create(null);
     this.emitEvent = emitEvent;
-    this.isControllingBranch = isControllingBranch;
+    this.controllingBranch = controllingBranch;
+    this.isControllingBranch = controllingBranch === branch;
     this.searchers = owner.lookup('hub:searchers');
     this.currentSchema = owner.lookup('hub:current-schema');
     this.schemaModels = [];
@@ -71,6 +72,9 @@ class BranchUpdate {
 
   async update(forceRefresh, hints) {
     await this.client.accomodateSchema(this.branch, await this.schema());
+
+    // the list of branches always come from the controlling branch
+    await this.add('branches', this.branch, { data: {id: this.branch, type: 'branches', attributes: {}}}, 'default', null, this.controllingBranch);
     await this._updateContent(hints);
   }
 
@@ -120,7 +124,7 @@ class BranchUpdate {
     });
   }
 
-  async add(type, id, doc, sourceId, nonce) {
+  async add(type, id, doc, sourceId, nonce, branch) {
     let schema = await this.schema();
     let context = this.searchers.createDocumentContext({
       schema,
@@ -129,7 +133,7 @@ class BranchUpdate {
       sourceId,
       generation: nonce,
       upstreamDoc: doc,
-      branch: this.branch
+      branch: branch || this.branch
     });
 
     let searchDoc = await context.searchDoc();

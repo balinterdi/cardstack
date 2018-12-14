@@ -68,7 +68,7 @@ module.exports = class RunningIndexers {
         for (let branch of await indexer.branches()) {
           if (!this.branches[branch]) {
             log.debug("Discovered branch %s", branch);
-            this.branches[branch] = new BranchUpdate(branch, this.seedSchema, this.client, this.emitEvent, this.controllingBranch === branch, this.owner);
+            this.branches[branch] = new BranchUpdate(branch, this.seedSchema, this.client, this.emitEvent, this.controllingBranch, this.owner);
           }
           newSchemaModels.push(await this.branches[branch].addDataSource(source));
         }

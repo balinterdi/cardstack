@@ -101,6 +101,7 @@ class Handler {
     this.ctxt = ctxt;
     this.query = qs.parse(this.ctxt.request.querystring, { plainObjects: true });
     this.branch = this.query.branch || options.defaultBranch;
+    this.defaultBranch = options.defaultBranch;
     this.prefix = options.prefix || '';
   }
 
@@ -250,14 +251,14 @@ class Handler {
   }
 
   async handleCollectionGET(type) {
-    if(type === 'branches') {
-      let branches = await this.indexers.branches();
+    let branch = this.branch;
 
-      this.ctxt.body = { data: branches.map(branch => ({id: branch, type: 'branches', attributes: {}}))};
-      return;
+    if(type === 'branches') {
+      // always get branches from defaultBranch
+      branch = this.defaultBranch;
     }
 
-    let { data: models, meta: { page }, included } = await this.searcher.search(this.session, this.branch, {
+    let { data: models, meta: { page }, included } = await this.searcher.search(this.session, branch, {
       filter: this.filterExpression(type),
       sort: this.query.sort,
       page: this.query.page,
